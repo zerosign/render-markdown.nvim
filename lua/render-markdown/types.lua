@@ -5,6 +5,7 @@
 ---@field overrides? render.md.overrides.UserConfig
 
 ---@class (exact) render.md.partial.UserConfig: render.md.base.UserConfig
+---@field asciidoc? render.md.asciidoc.UserConfig
 ---@field debounce? integer
 ---@field anti_conceal? render.md.anti.conceal.UserConfig
 ---@field bullet? render.md.bullet.UserConfig
@@ -53,6 +54,11 @@
 ---@class (exact) render.md.base.UserConfig
 ---@field enabled? boolean
 ---@field render_modes? render.md.Modes
+
+---Placeholder for future asciidoc-specific settings. For the MVP asciidoc
+---renderers reuse the existing markdown config sections, so this section is
+---an optional passthrough with no required keys.
+---@class (exact) render.md.asciidoc.UserConfig: render.md.base.UserConfig
 
 ---@class (exact) render.md.bullet.UserConfig: render.md.base.UserConfig
 ---@field icons? render.md.bullet.String

@@ -1122,6 +1122,39 @@ M.injections.default = {
                 (#set! injection.language "markdown"))
         ]],
     },
+
+    -- Inject asciidoc_inline into line nodes inside block elements so that
+    -- inline markup (**bold**, *italic*, `code`, links, ...) is rendered.
+    asciidoc = {
+        enabled = true,
+        query = [[
+; Inline content inside various block elements
+([
+    (admonition (line) @injection.content)
+    (block_title (line) @injection.content)
+    (checked_list_item (line) @injection.content)
+    (document_attr (line) @injection.content)
+    (document_title (line) @injection.content)
+    (ordered_list_item (line) @injection.content)
+    (quoted_block (line) @injection.content)
+    (quoted_line (line) @injection.content)
+    (title1 (line) @injection.content)
+    (title2 (line) @injection.content)
+    (title3 (line) @injection.content)
+    (title4 (line) @injection.content)
+    (title5 (line) @injection.content)
+    (unordered_list_item (line) @injection.content)
+]
+  (#set! injection.include-children)
+  (#set! injection.language "asciidoc_inline"))
+
+; Plain paragraphs inside section blocks
+((section_block
+  (paragraph) @injection.content) @_block
+  (#set! injection.include-children)
+  (#set! injection.language "asciidoc_inline"))
+        ]],
+    },
 }
 
 ---@return render.md.Schema

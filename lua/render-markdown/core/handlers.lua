@@ -14,6 +14,7 @@ M.builtin = {
     markdown_inline = require('render-markdown.handler.markdown_inline'),
     yaml = require('render-markdown.handler.yaml'),
     asciidoc = require('render-markdown.handler.asciidoc'),
+    asciidoc_inline = require('render-markdown.handler.asciidoc_inline'),
 }
 
 ---@param context render.md.request.Context

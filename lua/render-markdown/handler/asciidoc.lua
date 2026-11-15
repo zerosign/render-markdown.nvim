@@ -47,6 +47,9 @@ function M.parse(ctx)
 
         ; Document attributes (frontmatter-ish)
         (document_attr) @yaml
+
+        ; Sections (for indent levels)
+        (section) @section
     ]])
 
     ---@type table<string, render.md.Render>
@@ -60,6 +63,7 @@ function M.parse(ctx)
         table     = require('render-markdown.render.asciidoc.table'),
         dash      = require('render-markdown.render.asciidoc.dash'),
         yaml      = require('render-markdown.render.asciidoc.document_attr'),
+        section   = require('render-markdown.render.asciidoc.section'),
     }
 
     local context = Context.get(ctx.buf)

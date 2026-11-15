@@ -21,7 +21,7 @@ Render.__index = Render
 ---@protected
 ---@return boolean
 function Render:setup()
-    self.config = self.context.config.bullet
+    self.config = self.context.config.asciidoc.bullet
     if not self.config.enabled then
         return false
     end

@@ -9,7 +9,7 @@ Render.__index = Render
 ---@protected
 ---@return boolean
 function Render:setup()
-    self.config = self.context.config.code
+    self.config = self.context.config.asciidoc.code
     if not self.config.enabled or not self.config.inline then
         return false
     end

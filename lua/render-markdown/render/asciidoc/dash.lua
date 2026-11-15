@@ -14,7 +14,7 @@ Render.__index = Render
 ---@protected
 ---@return boolean
 function Render:setup()
-    self.config = self.context.config.dash
+    self.config = self.context.config.asciidoc.dash
     if not self.config.enabled then
         return false
     end

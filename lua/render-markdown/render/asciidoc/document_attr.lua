@@ -8,7 +8,7 @@ Render.__index = Render
 ---@protected
 ---@return boolean
 function Render:setup()
-    self.config = self.context.config.document
+    self.config = self.context.config.asciidoc.document
     return self.config.enabled
 end
 

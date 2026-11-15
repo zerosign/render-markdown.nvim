@@ -30,6 +30,7 @@ local M = {}
 ---@field sign render.md.sign.Config
 ---@field win_options render.md.window.Configs
 ---@field yaml render.md.yaml.Config
+---@field asciidoc render.md.asciidoc.Config
 
 ---@class (exact) render.md.state.Config
 ---@field log_level render.md.log.Level
@@ -118,6 +119,7 @@ M.default = {
     overrides = settings.overrides.default,
     custom_handlers = settings.handlers.default,
     yaml = settings.yaml.default,
+    asciidoc = settings.asciidoc.default,
 }
 
 ---@param opts? render.md.UserConfig

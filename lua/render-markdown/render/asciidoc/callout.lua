@@ -19,7 +19,7 @@ Render.__index = Render
 ---@protected
 ---@return boolean
 function Render:setup()
-    self.config = self.context.config.callout
+    self.config = self.context.config.asciidoc.callout
     if not self.config then
         return false
     end

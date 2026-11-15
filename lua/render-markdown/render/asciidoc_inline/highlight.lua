@@ -8,7 +8,7 @@ Render.__index = Render
 ---@protected
 ---@return boolean
 function Render:setup()
-    self.config = self.context.config.inline_highlight
+    self.config = self.context.config.asciidoc.inline_highlight
     return self.config.enabled
 end
 

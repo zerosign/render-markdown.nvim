@@ -10,7 +10,7 @@ Render.__index = Render
 ---@protected
 ---@return boolean
 function Render:setup()
-    self.config = self.context.config.heading
+    self.config = self.context.config.asciidoc.heading
     if not self.config.enabled then
         return false
     end

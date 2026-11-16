@@ -23,18 +23,30 @@ function Render:run()
 
     -- Conceal the sidebar block markers (e.g. '****')
     if start_marker then
-        self.marks:add(self.config, true, start_marker.start_row, start_marker.start_col, {
-            end_row = start_marker.end_row,
-            end_col = start_marker.end_col,
-            conceal = '',
-        })
+        self.marks:add(
+            self.config,
+            true,
+            start_marker.start_row,
+            start_marker.start_col,
+            {
+                end_row = start_marker.end_row,
+                end_col = start_marker.end_col,
+                conceal = '',
+            }
+        )
     end
     if end_marker then
-        self.marks:add(self.config, true, end_marker.start_row, end_marker.start_col, {
-            end_row = end_marker.end_row,
-            end_col = end_marker.end_col,
-            conceal = '',
-        })
+        self.marks:add(
+            self.config,
+            true,
+            end_marker.start_row,
+            end_marker.start_col,
+            {
+                end_row = end_marker.end_row,
+                end_col = end_marker.end_col,
+                conceal = '',
+            }
+        )
     end
 
     -- Overlay icon at the start of the sidebar block

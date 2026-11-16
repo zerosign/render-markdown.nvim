@@ -30,6 +30,14 @@ function M.parse(ctx)
         (listing_block) @code
         (literal_block) @code
 
+        ; Mathematical blocks ([stem], [latexmath], etc.)
+        (section_block
+          (element_attr
+            (positional_attr
+              (block_style) @_style))
+          [(passthrough_block) (listing_block) (open_block)] @math
+          (#any-of? @_style "stem" "latexmath" "asciimath" "latex"))
+
         ; Quotes
         (quoted_block) @quote
 
@@ -91,11 +99,15 @@ function M.parse(ctx)
         ),
         sidebar = require('render-markdown.render.asciidoc.sidebar'),
         block_macro = require('render-markdown.render.asciidoc.block_macro'),
+        math = require('render-markdown.render.asciidoc.math'),
     }
 
     local context = Context.get(ctx.buf)
     local marks = Marks.new(context, false)
     context.view:nodes(ctx.root, query, function(capture, node)
+        if capture:sub(1, 1) == '_' then
+            return
+        end
         local render = renders[capture]
         assert(render, ('unhandled asciidoc capture: %s'):format(capture))
         render:execute(context, marks, node)

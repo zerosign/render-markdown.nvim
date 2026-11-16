@@ -14,26 +14,88 @@ end
 
 ---@protected
 function Render:run()
-    -- Find the reftext child (the displayed text) or fall back to id
-    local reftext = self.node:child('reftext')
-    local target = reftext or self.node:child('id')
-
     -- Overlay a link icon before the cross reference
-    local icon = { self.config.hyperlink, self.config.highlight } ---@type render.md.mark.Text
-    self.marks:over(self.config, 'xref', self.node, {
-        priority = 9000,
-        hl_mode = 'combine',
-        virt_text = { icon },
-        virt_text_pos = 'inline',
-    })
+    local icon = { self.config.hyperlink or '󰌹 ', self.config.highlight } ---@type render.md.mark.Text
+    self.marks:add(
+        self.config,
+        false,
+        self.node.start_row,
+        self.node.start_col,
+        {
+            priority = 9000,
+            hl_mode = 'combine',
+            virt_text = { icon },
+            virt_text_pos = 'inline',
+        }
+    )
 
-    -- Conceal the <<...>> wrapper and the id/reftext
-    if target then
-        self.marks:add(self.config, true, target.start_row, target.start_col, {
-            end_row = target.end_row,
-            end_col = target.end_col,
-            conceal = '',
-        })
+    local reftext = self.node:child('reftext')
+    if reftext then
+        -- Conceal `<<id,` prefix
+        self.marks:add(
+            self.config,
+            true,
+            self.node.start_row,
+            self.node.start_col,
+            {
+                end_row = self.node.start_row,
+                end_col = reftext.start_col,
+                conceal = '',
+            }
+        )
+        -- Highlight the displayed reftext label
+        self.marks:add(
+            self.config,
+            false,
+            reftext.start_row,
+            reftext.start_col,
+            {
+                end_row = reftext.end_row,
+                end_col = reftext.end_col,
+                hl_group = self.config.highlight,
+            }
+        )
+        -- Conceal `>>` suffix
+        self.marks:add(
+            self.config,
+            true,
+            self.node.start_row,
+            reftext.end_col,
+            {
+                end_row = self.node.end_row,
+                end_col = self.node.end_col,
+                conceal = '',
+            }
+        )
+    else
+        -- No label, display the id
+        local id = self.node:child('id')
+        if id then
+            -- Conceal `<<`
+            self.marks:add(
+                self.config,
+                true,
+                self.node.start_row,
+                self.node.start_col,
+                {
+                    end_row = self.node.start_row,
+                    end_col = id.start_col,
+                    conceal = '',
+                }
+            )
+            -- Highlight id
+            self.marks:add(self.config, false, id.start_row, id.start_col, {
+                end_row = id.end_row,
+                end_col = id.end_col,
+                hl_group = self.config.highlight,
+            })
+            -- Conceal `>>`
+            self.marks:add(self.config, true, self.node.start_row, id.end_col, {
+                end_row = self.node.end_row,
+                end_col = self.node.end_col,
+                conceal = '',
+            })
+        end
     end
 end
 

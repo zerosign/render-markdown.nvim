@@ -29,11 +29,17 @@ function Render:run()
     local replacement = REPLACEMENT_MAP[text] or text
 
     -- Conceal the replacement text and show the unicode equivalent
-    self.marks:add(self.config, true, self.node.start_row, self.node.start_col, {
-        end_row = self.node.end_row,
-        end_col = self.node.end_col,
-        conceal = '',
-    })
+    self.marks:add(
+        self.config,
+        true,
+        self.node.start_row,
+        self.node.start_col,
+        {
+            end_row = self.node.end_row,
+            end_col = self.node.end_col,
+            conceal = '',
+        }
+    )
 
     self.marks:over(self.config, 'replacement', self.node, {
         virt_text = { { replacement, self.config.highlight } },

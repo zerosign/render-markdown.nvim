@@ -7,6 +7,7 @@ local str = require('render-markdown.lib.str')
 local MACRO_CONFIG = {
     image = { icon = '󰈚 ', highlight = 'RenderMarkdownLink' },
     link = { icon = '󰌹 ', highlight = 'RenderMarkdownLink' },
+    mailto = { icon = '󰀓 ', highlight = 'RenderMarkdownLink' },
     icon = { icon = '󰥔 ', highlight = 'RenderMarkdownLink' },
     pass = { icon = '󰨊 ', highlight = 'RenderMarkdownCodeInline' },
     footnote = { icon = '󰋚 ', highlight = 'RenderMarkdownLink' },
@@ -53,9 +54,27 @@ function Render:run()
         return
     end
 
-    -- Get the target (first positional argument) or attr
-    local target = self.node:child('target') or self.node:child('attr')
-    local target_text = target and target.text or ''
+    -- For link and mailto macros, prefer the label (attr) if present, else target
+    local display_text = ''
+    if name == 'mailto' or name == 'link' then
+        local attr = self.node:child('attr')
+        local target = self.node:child('target')
+        if attr and #vim.trim(attr.text) > 0 then
+            display_text = vim.trim(attr.text)
+        elseif target and #vim.trim(target.text) > 0 then
+            display_text = vim.trim(target.text)
+        end
+    else
+        local target = self.node:child('target') or self.node:child('attr')
+        display_text = target and target.text or ''
+    end
+
+    local icon = cfg.icon
+    if name == 'mailto' and self.config.email then
+        icon = self.config.email
+    elseif (name == 'link' or name == 'image') and self.config.hyperlink then
+        icon = self.config.hyperlink
+    end
 
     -- Conceal the raw macro syntax
     self.marks:add(
@@ -70,10 +89,10 @@ function Render:run()
         }
     )
 
-    -- Add icon and target text inline
-    local line = self:line():text(cfg.icon, cfg.highlight)
-    if #target_text > 0 then
-        line:text(target_text, cfg.highlight)
+    -- Add icon and display text inline
+    local line = self:line():text(icon, cfg.highlight)
+    if #display_text > 0 then
+        line:text(display_text, cfg.highlight)
     end
     self.marks:add(
         self.config,

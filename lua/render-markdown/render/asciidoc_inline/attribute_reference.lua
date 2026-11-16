@@ -20,14 +20,21 @@ function Render:run()
     local name = attr_name and attr_name.text or self.node.text
 
     -- Conceal the braces and show just the attribute name
-    self.marks:add(self.config, true, self.node.start_row, self.node.start_col, {
-        end_row = self.node.end_row,
-        end_col = self.node.end_col,
-        conceal = '',
-    })
+    self.marks:add(
+        self.config,
+        true,
+        self.node.start_row,
+        self.node.start_col,
+        {
+            end_row = self.node.end_row,
+            end_col = self.node.end_col,
+            conceal = '',
+        }
+    )
 
     -- Overlay the attribute reference with icon
-    local icon_line = self:line():text('{', self.config.highlight)
+    local icon_line = self:line()
+        :text('{', self.config.highlight)
         :text(name, self.config.highlight)
         :text('}', self.config.highlight)
     self.marks:over(self.config, 'attribute_reference', self.node, {

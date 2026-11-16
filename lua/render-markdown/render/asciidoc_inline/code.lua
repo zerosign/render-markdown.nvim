@@ -21,7 +21,12 @@ function Render:run()
     -- Conceal the delimiter markers (backticks or + signs)
     for _, range in ipairs(self.node:find('[`+]')) do
         local text = vim.api.nvim_buf_get_text(
-            self.context.buf, range[1], range[2], range[3], range[4], {}
+            self.context.buf,
+            range[1],
+            range[2],
+            range[3],
+            range[4],
+            {}
         )[1] or ''
         -- Only conceal if the range is a delimiter (backtick or plus), not content
         if text:match('[`+]') then
@@ -40,9 +45,17 @@ function Render:run()
     })
 
     -- Left padding icon
-    self:padding(self.config.inline_left, self.config.highlight_inline_left, true)
+    self:padding(
+        self.config.inline_left,
+        self.config.highlight_inline_left,
+        true
+    )
     -- Right padding icon
-    self:padding(self.config.inline_right, self.config.highlight_inline_right, false)
+    self:padding(
+        self.config.inline_right,
+        self.config.highlight_inline_right,
+        false
+    )
 end
 
 ---@param text string

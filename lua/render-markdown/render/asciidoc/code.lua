@@ -45,6 +45,15 @@ function Render:setup()
     body = math.max(body, left + width + right, self.config.min_width)
 
     local language, attr = self:get_language()
+    if
+        language
+        and vim.tbl_contains(
+            { 'stem', 'latexmath', 'asciimath', 'latex' },
+            language.text
+        )
+    then
+        return false
+    end
     self.data = {
         language = language,
         attr = attr,

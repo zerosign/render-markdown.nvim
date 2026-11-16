@@ -34,8 +34,16 @@ function Render:run()
     })
 
     -- Left/right padding icons
-    self:padding(self.config.inline_left, self.config.highlight_inline_left, true)
-    self:padding(self.config.inline_right, self.config.highlight_inline_right, false)
+    self:padding(
+        self.config.inline_left,
+        self.config.highlight_inline_left,
+        true
+    )
+    self:padding(
+        self.config.inline_right,
+        self.config.highlight_inline_right,
+        false
+    )
 end
 
 ---@param text string

@@ -20,8 +20,7 @@ function M.parse(ctx)
         (monospace) @code
 
         ; Links
-        (link_url) @link
-        (email) @link
+        (autolink) @link
 
         ; Cross references
         (xref) @xref

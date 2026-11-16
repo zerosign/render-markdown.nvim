@@ -17,7 +17,12 @@ function Render:run()
     -- Conceal the '##' delimiter markers of ##highlight##
     for _, range in ipairs(self.node:find('#+')) do
         local text = vim.api.nvim_buf_get_text(
-            self.context.buf, range[1], range[2], range[3], range[4], {}
+            self.context.buf,
+            range[1],
+            range[2],
+            range[3],
+            range[4],
+            {}
         )[1] or ''
         if text:match('#') then
             self.marks:add(self.config, true, range[1], range[2], {
@@ -29,11 +34,17 @@ function Render:run()
     end
 
     -- Highlight the content
-    self.marks:add(self.config, false, self.node.start_row, self.node.start_col, {
-        end_row = self.node.end_row,
-        end_col = self.node.end_col,
-        hl_group = self.config.highlight,
-    })
+    self.marks:add(
+        self.config,
+        false,
+        self.node.start_row,
+        self.node.start_col,
+        {
+            end_row = self.node.end_row,
+            end_col = self.node.end_col,
+            hl_group = self.config.highlight,
+        }
+    )
 end
 
 return Render

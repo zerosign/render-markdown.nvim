@@ -9,8 +9,6 @@ local MACRO_CONFIG = {
     link = { icon = '󰌹 ', highlight = 'RenderMarkdownLink' },
     icon = { icon = '󰥔 ', highlight = 'RenderMarkdownLink' },
     pass = { icon = '󰨊 ', highlight = 'RenderMarkdownCodeInline' },
-    stem = { icon = '󰨊 ', highlight = 'RenderMarkdownCodeInline' },
-    asciimath = { icon = '󰨊 ', highlight = 'RenderMarkdownCodeInline' },
     footnote = { icon = '󰋚 ', highlight = 'RenderMarkdownLink' },
     footnoteref = { icon = '󰋚 ', highlight = 'RenderMarkdownLink' },
 }
@@ -41,40 +39,52 @@ function Render:run()
     local cfg = MACRO_CONFIG[name]
     if not cfg then
         -- Unknown macro: conceal the whole macro
-        self.marks:add(self.config, true, self.node.start_row, self.node.start_col, {
-            end_row = self.node.end_row,
-            end_col = self.node.end_col,
-            conceal = '',
-        })
+        self.marks:add(
+            self.config,
+            true,
+            self.node.start_row,
+            self.node.start_col,
+            {
+                end_row = self.node.end_row,
+                end_col = self.node.end_col,
+                conceal = '',
+            }
+        )
         return
     end
 
-    -- Get the target (first positional argument)
-    local target = self.node:child('target')
+    -- Get the target (first positional argument) or attr
+    local target = self.node:child('target') or self.node:child('attr')
     local target_text = target and target.text or ''
 
-    -- Overlay the macro icon at the start
-    local icon_line = self:line():text(cfg.icon, cfg.highlight)
-    self.marks:over(self.config, 'inline_macro', self.node, {
-        virt_text = icon_line:get(),
-        virt_text_pos = 'overlay',
-    })
+    -- Conceal the raw macro syntax
+    self.marks:add(
+        self.config,
+        true,
+        self.node.start_row,
+        self.node.start_col,
+        {
+            end_row = self.node.end_row,
+            end_col = self.node.end_col,
+            conceal = '',
+        }
+    )
 
-    -- Conceal the macro syntax (macro_name:target[attr])
-    self.marks:add(self.config, true, self.node.start_row, self.node.start_col, {
-        end_row = self.node.end_row,
-        end_col = self.node.end_col,
-        conceal = '',
-    })
-
-    -- If there's a target, show it as text after the concealed macro
-    if target and #target_text > 0 then
-        local target_line = self:line():text(target_text, cfg.highlight)
-        self.marks:add(self.config, false, self.node.start_row, self.node.start_col, {
-            virt_text = target_line:get(),
-            virt_text_pos = 'inline',
-        })
+    -- Add icon and target text inline
+    local line = self:line():text(cfg.icon, cfg.highlight)
+    if #target_text > 0 then
+        line:text(target_text, cfg.highlight)
     end
+    self.marks:add(
+        self.config,
+        false,
+        self.node.start_row,
+        self.node.start_col,
+        {
+            virt_text = line:get(),
+            virt_text_pos = 'inline',
+        }
+    )
 end
 
 return Render

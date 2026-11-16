@@ -22,6 +22,7 @@ M.builtin = {
 ---@return render.md.Mark[]
 function M.run(context, parser)
     local language_roots = {} ---@type table<string, TSNode[]>
+    local seen_ranges = {} ---@type table<string, table<string, boolean>>
     parser:for_each_tree(function(tree, language_tree)
         local root = tree:root()
         local language = language_tree:lang()
@@ -30,12 +31,21 @@ function M.run(context, parser)
             and (state.nested or M.level(language_tree) == 1)
             and context.view:overlaps(root)
         then
-            local roots = language_roots[language]
-            if not roots then
-                roots = {}
-                language_roots[language] = roots
+            local srow, scol, erow, ecol = root:range()
+            local range_key =
+                string.format('%d:%d-%d:%d', srow, scol, erow, ecol)
+            if not seen_ranges[language] then
+                seen_ranges[language] = {}
             end
-            roots[#roots + 1] = root
+            if not seen_ranges[language][range_key] then
+                seen_ranges[language][range_key] = true
+                local roots = language_roots[language]
+                if not roots then
+                    roots = {}
+                    language_roots[language] = roots
+                end
+                roots[#roots + 1] = root
+            end
         end
     end)
 

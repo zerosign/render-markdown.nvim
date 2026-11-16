@@ -56,14 +56,26 @@ function M.parse(ctx)
         link = require('render-markdown.render.asciidoc_inline.link'),
         xref = require('render-markdown.render.asciidoc_inline.xref'),
         highlight = require('render-markdown.render.asciidoc_inline.highlight'),
-        superscript = require('render-markdown.render.asciidoc_inline.superscript'),
+        superscript = require(
+            'render-markdown.render.asciidoc_inline.superscript'
+        ),
         subscript = require('render-markdown.render.asciidoc_inline.subscript'),
-        inline_macro = require('render-markdown.render.asciidoc_inline.inline_macro'),
-        macro_passthrough = require('render-markdown.render.asciidoc_inline.inline_macro'),
-        stem_macro = require('render-markdown.render.asciidoc_inline.inline_macro'),
-        passthrough = require('render-markdown.render.asciidoc_inline.passthrough'),
-        attribute_reference = require('render-markdown.render.asciidoc_inline.attribute_reference'),
-        replacement = require('render-markdown.render.asciidoc_inline.replacement'),
+        inline_macro = require(
+            'render-markdown.render.asciidoc_inline.inline_macro'
+        ),
+        macro_passthrough = require(
+            'render-markdown.render.asciidoc_inline.inline_macro'
+        ),
+        stem_macro = require('render-markdown.render.asciidoc_inline.stem'),
+        passthrough = require(
+            'render-markdown.render.asciidoc_inline.passthrough'
+        ),
+        attribute_reference = require(
+            'render-markdown.render.asciidoc_inline.attribute_reference'
+        ),
+        replacement = require(
+            'render-markdown.render.asciidoc_inline.replacement'
+        ),
     }
 
     local context = Context.get(ctx.buf)

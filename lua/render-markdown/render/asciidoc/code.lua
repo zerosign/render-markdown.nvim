@@ -115,8 +115,12 @@ end
 
 ---@protected
 function Render:run()
-    local start_row = self.node.start_row
-    local end_row = self.node.end_row - 1
+    -- Anchor the content rows on the block body so the last body line is never
+    -- cut off by background_inset or the end-marker offset.
+    local body = self.node:child('listing_block_body')
+        or self.node:child('literal_block_body')
+    local start_row = body and body.start_row or self.node.start_row
+    local end_row = body and (body.end_row - 1) or (self.node.end_row - 1)
 
     if self.config.conceal_delimiters then
         -- Delimiters for each block type

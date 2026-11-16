@@ -53,11 +53,17 @@ end
 ---@protected
 function Render:run()
     self:sign(self.config, self.config.sign, self.data.sign, self.data.fg)
-    -- conceal the heading marker (e.g. '===') so the icon takes its place
-    self.marks:over(self.config, true, self.data.marker, { conceal = '' })
+    -- conceal only the heading marker characters, not the title text that follows.
+    -- Use the marker's actual text width rather than trusting the scanner's end_col,
+    -- which may extend past the '=' characters into the first title character.
+    local marker = self.data.marker
+    self.marks:add(self.config, true, marker.start_row, marker.start_col, {
+        end_col = marker.start_col + #marker.text,
+        conceal = '',
+    })
     -- overlay the heading icon on the concealed marker
     if self.data.icon then
-        self.marks:over(self.config, 'head_icon', self.data.marker, {
+        self.marks:over(self.config, 'head_icon', marker, {
             virt_text = { { self.data.icon, { self.data.fg, self.data.bg } } },
             virt_text_pos = 'overlay',
         })

@@ -50,6 +50,30 @@ function M.parse(ctx)
 
         ; Sections (for indent levels)
         (section) @section
+
+        ; Description lists: `term:: definition`
+        (description_list) @description_list
+
+        ; Sidebar blocks (==== or ****)
+        (sidebar_block) @sidebar
+
+        ; Passthrough blocks (++++)
+        (passthrough_block) @code
+
+        ; Markdown quoted blocks
+        (quoted_md_block) @quote
+
+        ; Delimited blocks (====) — treated as quote for MVP
+        (delimited_block) @quote
+
+        ; Open blocks (--) — treated as quote for MVP
+        (open_block) @quote
+
+        ; Indented blocks — treated as literal block for MVP
+        (ident_block) @code
+
+        ; Block-level macros: image::[], link:[] etc. at start of line
+        (block_macro) @block_macro
     ]])
 
     ---@type table<string, render.md.Render>
@@ -64,6 +88,9 @@ function M.parse(ctx)
         dash      = require('render-markdown.render.asciidoc.dash'),
         yaml      = require('render-markdown.render.asciidoc.document_attr'),
         section   = require('render-markdown.render.asciidoc.section'),
+        description_list = require('render-markdown.render.asciidoc.description_list'),
+        sidebar   = require('render-markdown.render.asciidoc.sidebar'),
+        block_macro = require('render-markdown.render.asciidoc.block_macro'),
     }
 
     local context = Context.get(ctx.buf)

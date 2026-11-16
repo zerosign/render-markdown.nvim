@@ -119,14 +119,27 @@ function Render:run()
     local end_row = self.node.end_row - 1
 
     if self.config.conceal_delimiters then
-        local start_marker = self.node:child('listing_block_start_marker')
-            or self.node:child('literal_block_marker')
-        local end_marker = self.node:child('listing_block_end_marker')
-        if start_marker then
-            self.marks:over(self.config, true, start_marker, { conceal = '' })
+        -- Delimiters for each block type
+        local start_markers = {
+            'listing_block_start_marker',
+            'literal_block_marker',
+            'passthrough_block_marker',
+        }
+        local end_markers = {
+            'listing_block_end_marker',
+            'passthrough_block_marker',
+        }
+        for _, name in ipairs(start_markers) do
+            local m = self.node:child(name)
+            if m then
+                self.marks:over(self.config, true, m, { conceal = '' })
+            end
         end
-        if end_marker then
-            self.marks:over(self.config, true, end_marker, { conceal = '' })
+        for _, name in ipairs(end_markers) do
+            local m = self.node:child(name)
+            if m and vim.tbl_contains(start_markers, name) == false then
+                self.marks:over(self.config, true, m, { conceal = '' })
+            end
         end
     end
 

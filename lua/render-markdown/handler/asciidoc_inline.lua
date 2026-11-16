@@ -32,6 +32,20 @@ function M.parse(ctx)
         ; Superscript / subscript
         (superscript) @superscript
         (subscript) @subscript
+
+        ; Inline macros: image::[], link:[] icon:[] etc.
+        (inline_macro) @inline_macro
+        (macro_passthrough) @macro_passthrough
+        (stem_macro) @stem_macro
+
+        ; Passthrough text: +text+ and +++text+++
+        (passthrough) @passthrough
+
+        ; Attribute references: {attr}
+        (attribute_reference) @attribute_reference
+
+        ; Replacements: (C), (R), (TM), ...
+        (replacement) @replacement
     ]])
 
     ---@type table<string, render.md.Render>
@@ -44,6 +58,12 @@ function M.parse(ctx)
         highlight = require('render-markdown.render.asciidoc_inline.highlight'),
         superscript = require('render-markdown.render.asciidoc_inline.superscript'),
         subscript = require('render-markdown.render.asciidoc_inline.subscript'),
+        inline_macro = require('render-markdown.render.asciidoc_inline.inline_macro'),
+        macro_passthrough = require('render-markdown.render.asciidoc_inline.inline_macro'),
+        stem_macro = require('render-markdown.render.asciidoc_inline.inline_macro'),
+        passthrough = require('render-markdown.render.asciidoc_inline.passthrough'),
+        attribute_reference = require('render-markdown.render.asciidoc_inline.attribute_reference'),
+        replacement = require('render-markdown.render.asciidoc_inline.replacement'),
     }
 
     local context = Context.get(ctx.buf)

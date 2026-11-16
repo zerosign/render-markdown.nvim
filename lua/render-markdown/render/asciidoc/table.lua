@@ -152,73 +152,24 @@ function Render:render_pipe_table()
         .. table.concat(parts, border[8])
         .. border[9]
 
-    -- 6. Conceal preceding [cols="..."] element_attr line
-    if attr then
-        self.marks:over(self.config, true, attr, {
-            conceal = '',
-            conceal_lines = '',
-        })
-    end
+    -- 6. Build lines for marks:replace
+    local lines = {} ---@type render.md.mark.Line[]
 
-    -- 7. Render top border over opening |===
-    local top_row = self.node.start_row
+    -- Top border
     if self.config.border_enabled ~= false then
-        self.marks:add(self.config, 'table_border', top_row, 0, {
-            virt_text = { { top_border, self.config.head } },
-            virt_text_pos = 'overlay',
-        })
-    else
-        self.marks:add(self.config, true, top_row, 0, {
-            end_row = top_row + 1,
-            end_col = 0,
-            conceal = '',
-            conceal_lines = '',
-        })
+        local line = self:line()
+        line:text(top_border, self.config.head)
+        lines[#lines + 1] = line:get()
     end
 
-    -- 8. Render each row and delimiters
-    local last_rendered_row = top_row
-
+    -- Rows and delimiter
     for r = 1, num_rows do
         local row = rows[r]
         local is_head = (r == 1)
         local hl = is_head and self.config.head or self.config.row
 
-        -- Handle blank lines between previous rendered row and this row
-        if row.start_row > last_rendered_row + 1 then
-            for blank_r = last_rendered_row + 1, row.start_row - 1 do
-                if is_head then
-                    self.marks:add(self.config, true, blank_r, 0, {
-                        end_row = blank_r + 1,
-                        end_col = 0,
-                        conceal = '',
-                        conceal_lines = '',
-                    })
-                elseif r == 2 and blank_r == last_rendered_row + 1 then
-                    -- The blank line immediately after header becomes the delimiter line
-                    self.marks:add(self.config, 'table_border', blank_r, 0, {
-                        virt_text = { { delimiter, self.config.head } },
-                        virt_text_pos = 'overlay',
-                    })
-                else
-                    self.marks:add(self.config, true, blank_r, 0, {
-                        end_row = blank_r + 1,
-                        end_col = 0,
-                        conceal = '',
-                        conceal_lines = '',
-                    })
-                end
-            end
-        elseif r == 2 then
-            -- No blank line between header and row 2: insert virtual delimiter line
-            self.marks:add(self.config, 'virtual_lines', rows[1].end_row, 0, {
-                virt_lines = { { { delimiter, self.config.head } } },
-                virt_lines_above = false,
-            })
-        end
-
-        -- Format row string
-        local row_str = icon_v
+        local line = self:line()
+        line:text(icon_v, hl)
         for c = 1, num_cols do
             local text = row.cells[c]
             local align = alignments[c] or 'left'
@@ -237,77 +188,38 @@ function Render:render_pipe_table()
                 left_pad = padding
                 right_pad = padding + extra
             end
-            row_str = row_str
-                .. (' '):rep(left_pad)
-                .. text
-                .. (' '):rep(right_pad)
-                .. icon_v
+            line:pad(left_pad)
+            line:text(text, hl)
+            line:pad(right_pad)
+            line:text(icon_v, hl)
         end
+        lines[#lines + 1] = line:get()
 
-        -- Overlay formatted row on row.start_row
-        self.marks:add(self.config, 'table_border', row.start_row, 0, {
-            virt_text = { { row_str, hl } },
-            virt_text_pos = 'overlay',
-        })
-
-        -- If buffer line has extra text beyond row_str, conceal it
-        local line_content = vim.api.nvim_buf_get_lines(
-            self.context.buf,
-            row.start_row,
-            row.start_row + 1,
-            false
-        )[1] or ''
-        local line_w = str.width(line_content)
-        local row_w = str.width(row_str)
-        if line_w > row_w then
-            self.marks:add(self.config, true, row.start_row, row_w, {
-                end_col = line_w,
-                conceal = '',
-            })
-        end
-
-        -- If cells were on multiple lines, conceal the extra lines
-        if row.end_row > row.start_row then
-            for extra_r = row.start_row + 1, row.end_row do
-                self.marks:add(self.config, true, extra_r, 0, {
-                    end_row = extra_r + 1,
-                    end_col = 0,
-                    conceal = '',
-                    conceal_lines = '',
-                })
-            end
-        end
-
-        last_rendered_row = row.end_row
-    end
-
-    -- 9. Conceal any blank lines between last row and closing |===
-    local bottom_row = self.node.end_row - 1
-    if bottom_row > last_rendered_row + 1 then
-        for blank_r = last_rendered_row + 1, bottom_row - 1 do
-            self.marks:add(self.config, true, blank_r, 0, {
-                end_row = blank_r + 1,
-                end_col = 0,
-                conceal = '',
-                conceal_lines = '',
-            })
+        -- Add delimiter below header row
+        if is_head and num_rows > 1 then
+            local delim_line = self:line()
+            delim_line:text(delimiter, self.config.head)
+            lines[#lines + 1] = delim_line:get()
         end
     end
 
-    -- 10. Render bottom border over closing |===
+    -- Bottom border
     if self.config.border_enabled ~= false then
-        self.marks:add(self.config, 'table_border', bottom_row, 0, {
-            virt_text = { { bottom_border, self.config.row } },
-            virt_text_pos = 'overlay',
-        })
-    else
-        self.marks:add(self.config, true, bottom_row, 0, {
-            end_row = bottom_row + 1,
-            end_col = 0,
+        local line = self:line()
+        line:text(bottom_border, self.config.row)
+        lines[#lines + 1] = line:get()
+    end
+
+    -- 7. Conceal preceding [cols="..."] element_attr line
+    if attr then
+        self.marks:over(self.config, true, attr, {
             conceal = '',
             conceal_lines = '',
         })
     end
+
+    -- 8. Entirely replace table_block with formatted table virt_lines
+    self.marks:replace(self.config, self.node, lines)
 end
 
 ---@private

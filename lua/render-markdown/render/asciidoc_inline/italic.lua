@@ -14,8 +14,8 @@ end
 
 ---@protected
 function Render:run()
-    -- Conceal the '*' delimiter markers of *italic*
-    for _, range in ipairs(self.node:find('%*')) do
+    -- Conceal the '_' or '__' delimiter markers of _italic_
+    for _, range in ipairs(self.node:find('_+')) do
         self.marks:add(self.config, true, range[1], range[2], {
             end_row = range[3],
             end_col = range[4],
@@ -23,11 +23,17 @@ function Render:run()
         })
     end
 
-    -- Overlay an italic icon at the start of the italicized text
-    self.marks:over(self.config, 'italic', self.node, {
-        virt_text = { { '󰦕 ', self.config.highlight } },
-        virt_text_pos = 'overlay',
-    })
+    self.marks:add(
+        self.config,
+        false,
+        self.node.start_row,
+        self.node.start_col,
+        {
+            end_row = self.node.end_row,
+            end_col = self.node.end_col,
+            hl_group = '@markup.italic',
+        }
+    )
 end
 
 return Render

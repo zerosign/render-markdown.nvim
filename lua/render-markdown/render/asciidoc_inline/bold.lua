@@ -14,8 +14,8 @@ end
 
 ---@protected
 function Render:run()
-    -- Conceal the '**' delimiter markers of **bold**
-    for _, range in ipairs(self.node:find('%*%*')) do
+    -- Conceal the '*' or '**' delimiter markers of *bold*
+    for _, range in ipairs(self.node:find('%*+')) do
         self.marks:add(self.config, true, range[1], range[2], {
             end_row = range[3],
             end_col = range[4],
@@ -23,11 +23,17 @@ function Render:run()
         })
     end
 
-    -- Overlay a bold icon at the start of the emphasized text
-    self.marks:over(self.config, 'bold', self.node, {
-        virt_text = { { '󰲣 ', self.config.highlight } },
-        virt_text_pos = 'overlay',
-    })
+    self.marks:add(
+        self.config,
+        false,
+        self.node.start_row,
+        self.node.start_col,
+        {
+            end_row = self.node.end_row,
+            end_col = self.node.end_col,
+            hl_group = '@markup.strong',
+        }
+    )
 end
 
 return Render

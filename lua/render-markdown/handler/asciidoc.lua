@@ -35,6 +35,7 @@ function M.parse(ctx)
 
         ; Callouts / admonitions
         (admonition) @callout
+        (delimited_block) @callout
 
         ; Tables
         (table_block) @table
@@ -63,9 +64,6 @@ function M.parse(ctx)
         ; Markdown quoted blocks
         (quoted_md_block) @quote
 
-        ; Delimited blocks (====) — treated as quote for MVP
-        (delimited_block) @quote
-
         ; Open blocks (--) — treated as quote for MVP
         (open_block) @quote
 
@@ -78,18 +76,20 @@ function M.parse(ctx)
 
     ---@type table<string, render.md.Render>
     local renders = {
-        heading   = require('render-markdown.render.asciidoc.heading'),
+        heading = require('render-markdown.render.asciidoc.heading'),
         paragraph = require('render-markdown.render.asciidoc.paragraph'),
-        list      = require('render-markdown.render.asciidoc.list'),
-        code      = require('render-markdown.render.asciidoc.code'),
-        quote     = require('render-markdown.render.asciidoc.quote'),
-        callout   = require('render-markdown.render.asciidoc.callout'),
-        table     = require('render-markdown.render.asciidoc.table'),
-        dash      = require('render-markdown.render.asciidoc.dash'),
-        yaml      = require('render-markdown.render.asciidoc.document_attr'),
-        section   = require('render-markdown.render.asciidoc.section'),
-        description_list = require('render-markdown.render.asciidoc.description_list'),
-        sidebar   = require('render-markdown.render.asciidoc.sidebar'),
+        list = require('render-markdown.render.asciidoc.list'),
+        code = require('render-markdown.render.asciidoc.code'),
+        quote = require('render-markdown.render.asciidoc.quote'),
+        callout = require('render-markdown.render.asciidoc.callout'),
+        table = require('render-markdown.render.asciidoc.table'),
+        dash = require('render-markdown.render.asciidoc.dash'),
+        yaml = require('render-markdown.render.asciidoc.document_attr'),
+        section = require('render-markdown.render.asciidoc.section'),
+        description_list = require(
+            'render-markdown.render.asciidoc.description_list'
+        ),
+        sidebar = require('render-markdown.render.asciidoc.sidebar'),
         block_macro = require('render-markdown.render.asciidoc.block_macro'),
     }
 

@@ -29,10 +29,24 @@ function Render:setup()
     if not marker then
         return false
     end
-    local list_type = self.node.type == 'ordered_list_item' and 'ordered_list' or 'unordered_list'
-    local level = self.node:level_in(list_type)
-    local ordered_types = { 'list_marker_digit', 'list_marker_alpha' }
-    local ordered = vim.tbl_contains(ordered_types, marker.type)
+    local list_type = self.node.type == 'ordered_list_item' and 'ordered_list'
+        or 'unordered_list'
+    local trimmed = vim.trim(marker.text)
+    local level = #trimmed
+    if
+        marker.type == 'list_marker_digit'
+        or marker.type == 'list_marker_alpha'
+    then
+        level = self.node:level_in(list_type)
+    end
+    if level == 0 then
+        level = 1
+    end
+
+    local ordered_types =
+        { 'list_marker_digit', 'list_marker_alpha', 'list_marker_dot' }
+    local ordered = self.node.type == 'ordered_list_item'
+        or vim.tbl_contains(ordered_types, marker.type)
     local icons = ordered and self.config.ordered_icons or self.config.icons
     ---@type render.md.bullet.Context
     local ctx = {
@@ -40,6 +54,7 @@ function Render:setup()
         index = self.node:sibling_count(self.node.type),
         value = marker.text,
     }
+    local indent_pad = (level - 1) * 2
     self.data = {
         marker = marker,
         level = level,
@@ -47,7 +62,7 @@ function Render:setup()
         icon = Render.get_string(icons, ctx),
         highlight = Render.get_string(self.config.highlight, ctx),
         scope_highlight = Render.get_string(self.config.scope_highlight, ctx),
-        left_pad = Render.get_integer(self.config.left_pad, ctx),
+        left_pad = indent_pad + Render.get_integer(self.config.left_pad, ctx),
         right_pad = Render.get_integer(self.config.right_pad, ctx),
     }
     return true
@@ -105,12 +120,10 @@ function Render:marker()
         return
     end
     local node = self.data.marker
-    local text = str.pad(str.spaces('start', node.text)) .. icon
-    local overflow = str.width(text) > str.width(node.text)
     self.marks:over(self.config, 'bullet', node, {
-        virt_text = { { text, highlight } },
-        virt_text_pos = overflow and 'inline' or 'overlay',
-        conceal = overflow and '' or nil,
+        virt_text = { { icon, highlight } },
+        virt_text_pos = 'inline',
+        conceal = '',
     })
 end
 

@@ -53,17 +53,25 @@ end
 ---@protected
 function Render:run()
     self:sign(self.config, self.config.sign, self.data.sign, self.data.fg)
-    -- conceal only the heading marker characters, not the title text that follows.
-    -- Use the marker's actual text width rather than trusting the scanner's end_col,
-    -- which may extend past the '=' characters into the first title character.
+    -- conceal only the heading marker characters (the '=' run), not the title
+    -- text that follows. Use the node-type-derived level (+1 for the '=' run)
+    -- rather than marker.text or the scanner's end_col, since some tree-sitter
+    -- scanners return a marker range that extends into the first title character
+    -- (e.g. '== O' instead of '=='), which would hide that character.
     local marker = self.data.marker
     self.marks:add(self.config, true, marker.start_row, marker.start_col, {
-        end_col = marker.start_col + #marker.text,
+        end_col = marker.start_col + self.data.level + 1,
         conceal = '',
     })
-    -- overlay the heading icon on the concealed marker
+    -- overlay the heading icon on the concealed marker.
+    -- Use marks:add with an explicit end_col (level + 1) rather than marks:over,
+    -- which would inherit the scanner's potentially-overwide marker end_col.
     if self.data.icon then
-        self.marks:over(self.config, 'head_icon', marker, {
+        local marker = self.data.marker
+        local end_col = marker.start_col + self.data.level + 1
+        self.marks:add(self.config, 'head_icon', marker.start_row, marker.start_col, {
+            end_row = marker.end_row,
+            end_col = end_col,
             virt_text = { { self.data.icon, { self.data.fg, self.data.bg } } },
             virt_text_pos = 'overlay',
         })

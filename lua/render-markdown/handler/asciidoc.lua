@@ -40,6 +40,10 @@ function M.parse(ctx)
 
         ; Quotes
         (quoted_block) @quote
+        (quoted_md_block) @quote
+
+        ; Open blocks
+        (open_block) @open_block
 
         ; Callouts / admonitions
         (admonition) @callout
@@ -100,6 +104,7 @@ function M.parse(ctx)
         sidebar = require('render-markdown.render.asciidoc.sidebar'),
         block_macro = require('render-markdown.render.asciidoc.block_macro'),
         math = require('render-markdown.render.asciidoc.math'),
+        open_block = require('render-markdown.render.asciidoc.open_block'),
     }
 
     local context = Context.get(ctx.buf)

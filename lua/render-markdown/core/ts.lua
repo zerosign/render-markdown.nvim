@@ -14,7 +14,7 @@ M.queries = {}
 
 ---called from state on setup
 function M.setup()
-    for _, language in ipairs(state.file_types) do
+    for language in pairs(state.injections) do
         M.inject(language)
     end
 end

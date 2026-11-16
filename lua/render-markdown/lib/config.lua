@@ -40,6 +40,7 @@ function Config.new(root, enabled, buf, custom)
         sign = root.sign,
         win_options = root.win_options,
         yaml = root.yaml,
+        asciidoc = root.asciidoc,
     }
     config = vim.deepcopy(config)
 
@@ -125,6 +126,7 @@ function Config.schema(child)
         sign = settings.sign.schema(),
         win_options = settings.win_options.schema(),
         yaml = settings.yaml.schema(),
+        asciidoc = settings.asciidoc.schema(),
     }
     local record = vim.tbl_deep_extend('error', parent, child)
     return settings.base.schema(record)

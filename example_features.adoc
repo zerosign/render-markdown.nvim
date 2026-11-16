@@ -1,0 +1,299 @@
+= Linux eBPF Architecture & Low-Level Subsystem Manual
+zerosign <zerosign@kernel-space.org>
+v2.4, 2026-11-16: Subsystem Architecture Draft
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: highlight.js
+:kernel-version: 6.12.0-rc7
+:target-arch: x86_64
+:experimental:
+
+[abstract]
+This technical specification covers the low-level virtual machine internals, JIT compilation pipeline, in-kernel verifier algorithms, and Wayland display server IPC interfacing for modern Linux systems running on {kernel-version} ({target-arch}).
+
+---
+
+== System Overview & Micro-Architecture
+
+Linux extended Berkeley Packet Filter (eBPF) provides an in-kernel, register-based virtual machine executing 64-bit instructions with zero context-switch overhead. Programs are statically checked by the kernel verifier before execution.
+
+The core runtime parameters are configured for *production* workloads:
+
+* Runtime kernel version: `{kernel-version}`
+* Primary compilation target: `{target-arch}`
+* Verification state complexity bound: 1,000,000 processed instructions
+
+=== Inline Typography & Character Replacements
+
+AsciiDoc supports rich inline formatting for technical documentation:
+
+* *Bold text* for critical commands and keywords
+* _Italic text_ for emphasis and structural terms
+* *_Bold and italic combined_* for highlighting severe conditions
+* `inline_code()` for functions, syscalls, and identifier names
+* Monospaced with formatting: `*`mutable_pointer`*`
+* Mark / highlighted text: #critical memory barrier#
+* Superscript and Subscript: Memory complexity is O(N^2^) and chemical coolant is H~2~O
+* Passthrough syntax: +kernel_symbols+ and +++<b>raw html allowed here</b>+++
+* Automatic character replacements:
+** Copyright (C), Registered (R), Trademark (TM)
+** Em-dash -- separating conceptual clauses
+** Directional arrows: -> right, <- left, => double right, <= double left
+
+=== Hyperlinks & Cross References
+
+* External links: https://kernel.org[The Linux Kernel Archives]
+* Raw URLs: https://ebpf.io
+* Email reference: mailto:devnull@kernel-space.org[Contact Maintainer]
+* Document Cross Reference: See <<sec-tables,Section 4: Performance Metrics & Tables>> for benchmark results.
+* Inline stem math: stem:[E = mc^2] and latexmath:[\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}]
+
+---
+
+== Structured Lists & Hierarchical Navigation
+
+=== Unordered and Ordered Lists
+
+.Unordered Kernel Components
+* Storage Subsystem
+** Block Layer (`blk-mq`)
+*** Multi-queue scheduler (`bfq`, `kyber`, `none`)
+*** NVMe driver interface
+** Virtual File System (`VFS`)
+* Networking Stack
+** eXpress Data Path (`XDP`)
+** Traffic Control (`cls_bpf`)
+
+.Bootstrapping Sequence (Ordered)
+. Initialize bootloader parameters and decompression
+. Relocate real-mode kernel code to 64-bit protected long mode
+.. Validate CPUID flags (`AVX-512`, `FMA`, `POPCNT`)
+.. Initialize page tables (`CR3` mapping)
+. Launch the primary kernel init thread (`PID 1`)
+
+=== Checklist / Task Execution Matrix
+
+* [*] Implement Wayland DMA-BUF zero-copy buffer passing
+* [*] Hook PipeWire camera stream into low-level video sink
+* [ ] Optimize BPF ring buffer allocation strategy
+* [ ] Validate seccomp syscall filtering sandbox
+
+=== Description & Labeled Lists
+
+XDP (eXpress Data Path)::
+  High-performance programmable packet processing at the network device driver level, before allocating `sk_buff`.
+eBPF Verifier:::
+  Directed Acyclic Graph (DAG) state exploration engine ensuring safety, termination, and out-of-bounds pointer prevention.
+CO-RE (Compile Once -- Run Everywhere)::::
+  BTF (BPF Type Format) relocation mechanism resolving struct field offsets at runtime without kernel header dependencies.
+
+---
+
+== Verbatim Blocks, Code Listings & Callouts
+
+=== Rust Wayland Camera Bridge
+
+Below is the zero-copy PipeWire buffer receiver interfacing with the Wayland presentation layer.
+
+[source,rust]
+----
+use std::os::fd::AsRawFd;
+use wayland_client::protocol::wl_shm; <1>
+
+pub struct CameraFramePipeline {
+    fd: i32,                          <2>
+    stride: usize,
+    buffer_pool: wl_shm::WlShm,
+}
+
+impl CameraFramePipeline {
+    pub fn new(fd: i32, width: u32, height: u32) -> Result<Self, String> {
+        let stride = (width * 4) as usize; <3>
+        println!("Allocating frame pipeline: {}x{} stride: {}", width, height, stride);
+        Ok(Self { fd, stride, buffer_pool: unsafe { std::mem::zeroed() } })
+    }
+}
+----
+<1> Import Wayland shared memory protocol definitions.
+<2> Underlying file descriptor backed by `memfd_create` or DMA-BUF.
+<3> Calculate 32-bit ARGB/XRGB byte stride per scanline.
+
+=== C eBPF Kernel Probe
+
+[source,c]
+----
+#include <linux/bpf.h>
+#include <bpf/bpf_helpers.h>
+
+SEC("tracepoint/syscalls/sys_enter_execve")
+int tracepoint_execve(struct trace_event_raw_sys_enter *ctx) {
+    char comm[16];
+    bpf_get_current_comm(&comm, sizeof(comm));
+    bpf_printk("Process spawned: %s\n", comm);
+    return 0;
+}
+
+char LICENSE[] SEC("license") = "GPL";
+----
+
+=== Literal & Indented Blocks
+
+....
+Raw ASCII representation of hardware register:
++--------+--------+--------+--------+
+| 0x00   | 0x01   | 0x02   | 0x03   |
++--------+--------+--------+--------+
+....
+
+An indented block treated as literal formatting:
+
+    $ bpftool prog list --json | jq '.[].id'
+    $ perf stat -e bpf-output -p $(pgrep wayland-compositor)
+
+---
+
+[[sec-tables]]
+== Performance Metrics & Tables
+
+AsciiDoc tables format structured tabular benchmarks cleanly.
+
+=== Grid Pipe Table with Column Specifiers
+
+[cols="2,1,1,3"]
+|===
+|Benchmark Task |Runtime (ms) |Syscalls |Optimization Technique
+
+|Wayland Surface Commit
+|0.042
+|2
+|Zero-copy `wp_presentation` timing sync
+
+|PipeWire Frame Read
+|0.118
+|7
+|`memfd` sharing with `dma_heap`
+
+|BPF Ring Buffer Poll
+|0.009
+|1
+|Lockless ring buffer with adaptive sleep
+
+|Syscall Tracing Probe
+|0.003
+|0
+|In-kernel kprobe with JIT-compiled BPF filter
+|===
+
+=== Aligned Table with Numeric Precision
+
+[cols="<2,^1,>1"]
+|===
+|Subsystem Target |Thread Mode |Peak IOPS
+
+|NVMe Direct I/O
+|io_uring worker
+|1,450,000
+
+|Memory-Mapped Cache
+|Shared Ring
+|3,820,000
+
+|eBPF Socket Filter
+|Kernel Thread
+|8,900,000
+|===
+
+=== Multiline AsciiDoc Pipe Table
+
+[cols="1,1"]
+|===
+|Component Specification |Architecture Role
+
+|Kernel Verifier
+|Validates all branch targets and pointer arithmetic before JIT translation.
+
+|JIT Compiler
+|Emits native x86-64 machine opcodes directly into executable kernel pages.
+
+|BTF Relocator
+|Patches byte offsets based on kernel debug info at program load time.
+|===
+
+---
+
+== Admonitions & Callouts
+
+NOTE: eBPF programs run entirely in ring 0 kernel privilege, but cannot crash the machine due to the verifier's strict pointer validation.
+
+TIP: Compile BPF programs with `clang -O2 -target bpf -g` to preserve BTF debugging information for runtime relocation.
+
+IMPORTANT: Memory barriers (`smp_mb()`, `smp_rmb()`, `smp_wmb()`) are mandatory when communicating through lockless single-producer single-consumer ring buffers.
+
+CAUTION: Unbounded loops are rejected by kernel verifiers prior to Linux 5.3; use `#pragma unroll` or specify explicit iteration limits.
+
+WARNING: Incorrect DMA-BUF synchronization flags may cause visual tearing or display stall bugs under Wayland compositors.
+
+=== Multi-line Admonition Block
+
+[WARNING]
+====
+Directly dereferencing user-space pointers inside a BPF program without `bpf_probe_read_user()` will result in an immediate verifier rejection error:
+
+`R1 invalid mem access 'inv'`
+====
+
+---
+
+== Block Quotes, Sidebars & Delimited Blocks
+
+=== Attribution Quote
+
+[quote, Linus Torvalds, Linux Kernel Mailing List]
+____
+Talk is cheap. Show me the code. If it doesn't build cleanly with `-Wall -Wextra`, it doesn't belong in the mainline tree.
+____
+
+=== Markdown-Style Blockquote
+
+> Memory safety without garbage collection is the primary reason systems developers are migrating driver and compositor development to Rust.
+>
+> Zero-cost abstractions ensure native C-equivalent performance.
+
+=== Technical Sidebar
+
+.Sidebar: eBPF Helper Calling Convention
+****
+eBPF registers map directly to CPU hardware registers on `x86_64`:
+
+* `R0` -> Function return value (`%rax`)
+* `R1` - `R5` -> Function call arguments 1 through 5 (`%rdi`, `%rsi`, `%rdx`, `%rcx`, `%r8`)
+* `R6` - `R9` -> Callee-saved registers (`%rbx`, `%r13`, `%r14`, `%r15`)
+* `R10` -> Read-only frame pointer to top of stack (`%rbp`)
+****
+
+=== Delimited Open Block
+
+--
+An open block is a multipurpose container block. It can hold multiple paragraphs and behave as an anonymous container when necessary.
+--
+
+---
+
+== Block Macros & Mathematical Expressions
+
+=== Block Image Macro
+
+image::https://raw.githubusercontent.com/rust-lang/rust-artwork/master/logo/rust-logo-512x512.png[Rust Architecture Logo, 128, 128]
+
+=== Mathematical STEM Block
+
+[stem]
+++++
+\mathcal{L}_{BPF} = \sum_{i=1}^{N} \left( \alpha \cdot \text{Instr}_i + \beta \cdot \text{Branch}_i \right)
+++++
+
+---
+
+_End of AsciiDoc Comprehensive Feature Specification._

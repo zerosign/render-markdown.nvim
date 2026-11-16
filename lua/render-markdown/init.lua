@@ -30,6 +30,7 @@ local M = {}
 ---@field sign render.md.sign.Config
 ---@field win_options render.md.window.Configs
 ---@field yaml render.md.yaml.Config
+---@field asciidoc render.md.asciidoc.Config
 
 ---@class (exact) render.md.state.Config
 ---@field log_level render.md.log.Level
@@ -74,7 +75,7 @@ M.default = {
     -- Only intended to be used for plugin development / debugging.
     log_runtime = false,
     -- Filetypes this plugin will run on.
-    file_types = { 'markdown' },
+    file_types = { 'markdown', 'asciidoc' },
     -- Maximum file size (in MB) that this plugin will attempt to render.
     -- File larger than this will effectively be ignored.
     max_file_size = 10.0,
@@ -118,6 +119,7 @@ M.default = {
     overrides = settings.overrides.default,
     custom_handlers = settings.handlers.default,
     yaml = settings.yaml.default,
+    asciidoc = settings.asciidoc.default,
 }
 
 ---@param opts? render.md.UserConfig

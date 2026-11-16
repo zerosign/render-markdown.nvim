@@ -5,6 +5,7 @@
 ---@field overrides? render.md.overrides.UserConfig
 
 ---@class (exact) render.md.partial.UserConfig: render.md.base.UserConfig
+---@field asciidoc? render.md.asciidoc.UserConfig
 ---@field debounce? integer
 ---@field anti_conceal? render.md.anti.conceal.UserConfig
 ---@field bullet? render.md.bullet.UserConfig
@@ -53,6 +54,21 @@
 ---@class (exact) render.md.base.UserConfig
 ---@field enabled? boolean
 ---@field render_modes? render.md.Modes
+
+---@class (exact) render.md.asciidoc.UserConfig: render.md.base.UserConfig
+---@field heading? render.md.heading.UserConfig
+---@field paragraph? render.md.paragraph.UserConfig
+---@field bullet? render.md.bullet.UserConfig
+---@field checkbox? render.md.checkbox.UserConfig
+---@field code? render.md.code.UserConfig
+---@field quote? render.md.quote.UserConfig
+---@field callout? render.md.callout.UserConfigs
+---@field dash? render.md.dash.UserConfig
+---@field document? render.md.document.UserConfig
+---@field table? render.md.table.UserConfig
+---@field link? render.md.link.UserConfig
+---@field inline_highlight? render.md.inline.highlight.UserConfig
+---@field indent? render.md.indent.UserConfig
 
 ---@class (exact) render.md.bullet.UserConfig: render.md.base.UserConfig
 ---@field icons? render.md.bullet.String

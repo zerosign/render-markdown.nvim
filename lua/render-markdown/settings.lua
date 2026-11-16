@@ -1122,6 +1122,19 @@ M.injections.default = {
                 (#set! injection.language "markdown"))
         ]],
     },
+
+    -- Inject latex into stem_macro (stem, latexmath, asciimath) so math expressions
+    -- can be converted and rendered via the latex handler.
+    asciidoc_inline = {
+        enabled = true,
+        query = [[
+            ((stem_macro
+                (macro_name) @_name
+                (attr) @injection.content)
+                (#any-of? @_name "stem" "latexmath" "asciimath")
+                (#set! injection.language "latex"))
+        ]],
+    },
 }
 
 ---@return render.md.Schema
@@ -1923,6 +1936,71 @@ M.yaml.default = {
 ---@return render.md.Schema
 function M.yaml.schema()
     return M.base.schema({})
+end
+
+---@class render.md.asciidoc.Settings
+M.asciidoc = {}
+
+---@class (exact) render.md.asciidoc.Config
+---@field heading render.md.heading.Config
+---@field paragraph render.md.paragraph.Config
+---@field bullet render.md.bullet.Config
+---@field checkbox render.md.checkbox.Config
+---@field code render.md.code.Config
+---@field quote render.md.quote.Config
+---@field callout render.md.callout.Configs
+---@field dash render.md.dash.Config
+---@field document render.md.document.Config
+---@field table render.md.table.Config
+---@field link render.md.link.Config
+---@field inline_highlight render.md.inline.highlight.Config
+---@field indent render.md.indent.Config
+
+---@type render.md.asciidoc.Config
+M.asciidoc.default = {
+    heading = M.heading.default,
+    paragraph = M.paragraph.default,
+    bullet = M.bullet.default,
+    checkbox = M.checkbox.default,
+    code = M.code.default,
+    quote = M.quote.default,
+    callout = M.callout.default,
+    dash = M.dash.default,
+    document = M.document.default,
+    table = M.pipe_table.default,
+    link = M.link.default,
+    inline_highlight = M.inline_highlight.default,
+    indent = {
+        enabled = false,
+        render_modes = false,
+        per_level = 2,
+        skip_level = 1,
+        skip_heading = false,
+        icon = '▎',
+        priority = 0,
+        highlight = 'RenderMarkdownIndent',
+    },
+}
+
+---@return render.md.Schema
+function M.asciidoc.schema()
+    return {
+        record = {
+            heading = M.heading.schema(),
+            paragraph = M.paragraph.schema(),
+            bullet = M.bullet.schema(),
+            checkbox = M.checkbox.schema(),
+            code = M.code.schema(),
+            quote = M.quote.schema(),
+            callout = M.callout.schema(),
+            dash = M.dash.schema(),
+            document = M.document.schema(),
+            table = M.pipe_table.schema(),
+            link = M.link.schema(),
+            inline_highlight = M.inline_highlight.schema(),
+            indent = M.indent.schema(),
+        },
+    }
 end
 
 return M

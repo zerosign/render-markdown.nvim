@@ -1,12 +1,13 @@
 local Base = require('render-markdown.render.base')
+local Node = require('render-markdown.lib.node')
 local colors = require('render-markdown.core.colors')
 local env = require('render-markdown.lib.env')
 local icons = require('render-markdown.lib.icons')
-local Node = require('render-markdown.lib.node')
 local str = require('render-markdown.lib.str')
 
 ---@class render.md.code.Data
 ---@field language? render.md.Node
+---@field attr? render.md.Node
 ---@field language_padding integer
 ---@field padding integer
 ---@field body integer
@@ -43,8 +44,10 @@ function Render:setup()
         + widths[1]
     body = math.max(body, left + width + right, self.config.min_width)
 
+    local language, attr = self:get_language()
     self.data = {
-        language = self:get_language(),
+        language = language,
+        attr = attr,
         language_padding = language_padding,
         padding = left,
         body = body,
@@ -54,9 +57,9 @@ function Render:setup()
     return self:enabled(self.config.disable)
 end
 
----Resolve the listing/literal block language from a preceding
+---Resolve the listing/literal block language and attribute node from a preceding
 ---`[source,ruby]` style `element_attr` node.
----@return render.md.Node?
+---@return render.md.Node?, render.md.Node?
 function Render:get_language()
     local ts_node = self.node:get()
     while ts_node do
@@ -74,13 +77,12 @@ function Render:get_language()
                     leaf = child
                 end
             end
-            if leaf then
-                return Node.new(self.context.buf, leaf)
-            end
-            return nil
+            local attr = Node.new(self.context.buf, ts_node)
+            local lang = leaf and Node.new(self.context.buf, leaf) or nil
+            return lang, attr
         end
     end
-    return nil
+    return nil, nil
 end
 
 ---@private
@@ -123,6 +125,12 @@ function Render:run()
     local end_row = body and (body.end_row - 1) or (self.node.end_row - 1)
 
     if self.config.conceal_delimiters then
+        if self.data.attr then
+            self.marks:over(self.config, true, self.data.attr, {
+                conceal = '',
+                conceal_lines = '',
+            })
+        end
         -- Delimiters for each block type
         local start_markers = {
             'listing_block_start_marker',
@@ -151,7 +159,7 @@ function Render:run()
 
     local background = self:enabled(self.config.disable_background)
     if background then
-        local inset = self.config.background_inset
+        local inset = body and 0 or self.config.background_inset
         self:background(start_row + inset, end_row - inset)
     end
     self:padding(background)

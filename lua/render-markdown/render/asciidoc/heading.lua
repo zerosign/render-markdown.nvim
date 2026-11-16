@@ -1,5 +1,6 @@
 local Base = require('render-markdown.render.base')
 local list = require('render-markdown.lib.list')
+local str = require('render-markdown.lib.str')
 
 ---@class render.md.render.asciidoc.Heading: render.md.Render
 ---@field private config render.md.heading.Config
@@ -53,37 +54,55 @@ end
 ---@protected
 function Render:run()
     self:sign(self.config, self.config.sign, self.data.sign, self.data.fg)
-    -- conceal only the heading marker characters (the '=' run), not the title
-    -- text that follows. Use the node-type-derived level (+1 for the '=' run)
-    -- rather than marker.text or the scanner's end_col, since some tree-sitter
-    -- scanners return a marker range that extends into the first title character
-    -- (e.g. '== O' instead of '=='), which would hide that character.
+    local icon = self.data.icon
+    local position = self.config.position or 'overlay'
+    local highlight = {} ---@type string[]
+    highlight[#highlight + 1] = self.data.fg
+    highlight[#highlight + 1] = self.data.bg
+
     local marker = self.data.marker
-    self.marks:add(self.config, true, marker.start_row, marker.start_col, {
-        end_col = marker.start_col + self.data.level + 1,
-        conceal = '',
-    })
-    -- overlay the heading icon on the concealed marker.
-    -- Use marks:add with an explicit end_col (level + 1) rather than marks:over,
-    -- which would inherit the scanner's potentially-overwide marker end_col.
-    if self.data.icon then
-        local marker = self.data.marker
-        local end_col = marker.start_col + self.data.level + 1
-        self.marks:add(self.config, 'head_icon', marker.start_row, marker.start_col, {
-            end_row = marker.end_row,
-            end_col = end_col,
-            virt_text = { { self.data.icon, { self.data.fg, self.data.bg } } },
-            virt_text_pos = 'overlay',
+    local width = self.context:width(marker) + 1
+    local offset = { 0, 0, 0, 1 } ---@type Range4
+
+    if not icon or #highlight == 0 then
+        self.marks:over(self.config, true, marker, { conceal = '' }, offset)
+    elseif position == 'eol' or position == 'right' then
+        self.marks:over(self.config, true, marker, { conceal = '' }, offset)
+        self.marks:start(self.config, 'head_icon', marker, {
+            priority = 1000,
+            virt_text = { { icon, highlight } },
+            virt_text_pos = position == 'eol' and 'eol_right_align' or 'eol',
         })
+    else
+        local space = width - str.width(icon)
+        if position == 'inline' or space < 0 then
+            self.marks:over(self.config, 'head_icon', marker, {
+                virt_text = { { icon, highlight } },
+                virt_text_pos = 'inline',
+                conceal = '',
+            }, offset)
+        else
+            self.marks:over(self.config, 'head_icon', marker, {
+                virt_text = { { str.pad(space) .. icon, highlight } },
+                virt_text_pos = 'overlay',
+            })
+        end
     end
+
     -- background across the heading line(s)
     if self.data.bg then
         for row = self.node.start_row, self.node.end_row - 1 do
-            self.marks:add(self.config, 'head_background', row, self.node.start_col, {
-                end_row = row + 1,
-                hl_group = self.data.bg,
-                hl_eol = true,
-            })
+            self.marks:add(
+                self.config,
+                'head_background',
+                row,
+                self.node.start_col,
+                {
+                    end_row = row + 1,
+                    hl_group = self.data.bg,
+                    hl_eol = true,
+                }
+            )
         end
     end
 end

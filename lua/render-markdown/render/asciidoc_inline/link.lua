@@ -9,7 +9,34 @@ Render.__index = Render
 ---@return boolean
 function Render:setup()
     self.config = self.context.config.asciidoc.link
-    return self.config.enabled
+    if not self.config.enabled then
+        return false
+    end
+    -- If this autolink is inside a macro's target, skip it
+    local ts = vim.treesitter.get_parser(self.context.buf, 'asciidoc')
+    if ts then
+        local main_tree = ts:parse()[1]
+        if main_tree then
+            local host = main_tree:root():descendant_for_range(
+                self.node.start_row,
+                self.node.start_col,
+                self.node.start_row,
+                self.node.start_col
+            )
+            while host do
+                local htype = host:type()
+                if
+                    htype == 'block_macro'
+                    or htype == 'inline_macro'
+                    or htype == 'target'
+                then
+                    return false
+                end
+                host = host:parent()
+            end
+        end
+    end
+    return true
 end
 
 ---@protected

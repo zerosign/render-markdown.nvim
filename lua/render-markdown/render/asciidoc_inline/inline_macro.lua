@@ -54,9 +54,9 @@ function Render:run()
         return
     end
 
-    -- For link and mailto macros, prefer the label (attr) if present, else target
+    -- For link, mailto, and image macros, prefer the label (attr) if present, else target
     local display_text = ''
-    if name == 'mailto' or name == 'link' then
+    if name == 'mailto' or name == 'link' or name == 'image' then
         local attr = self.node:child('attr')
         local target = self.node:child('target')
         if attr and #vim.trim(attr.text) > 0 then
@@ -72,8 +72,10 @@ function Render:run()
     local icon = cfg.icon
     if name == 'mailto' and self.config.email then
         icon = self.config.email
-    elseif (name == 'link' or name == 'image') and self.config.hyperlink then
+    elseif name == 'link' and self.config.hyperlink then
         icon = self.config.hyperlink
+    elseif name == 'image' and self.config.image then
+        icon = self.config.image
     end
 
     -- Conceal the raw macro syntax
